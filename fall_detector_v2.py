@@ -87,10 +87,13 @@ except Exception as e:
 # Parameters
 SHOULDER_WIDTH_METERS = 0.4
 CAMERA_FOV = 55
-fall_threshold = 0.3
+fall_threshold = 0.05  # Très sensible - moindre chute détectée
+falling_speed_threshold = 0.02  # Détection par vélocité (changement rapide)
 fall_buffer = deque(maxlen=10)
 fall_confirmed = False
 fall_time = 0
+prev_nose_y = None
+prev_shoulder_y = None
 
 # Tracking
 frame_count = 0
@@ -161,6 +164,17 @@ try:
                     # Fall detection
                     if nose.y > shoulder_y + fall_threshold:
                         is_falling = True
+                    
+                    # Also detect by falling speed (rapid downward movement)
+                    if prev_nose_y is not None:
+                        nose_velocity = nose.y - prev_nose_y
+                        shoulder_velocity = shoulder_y - prev_shoulder_y
+                        
+                        if nose_velocity > falling_speed_threshold and nose_velocity > shoulder_velocity + 0.01:
+                            is_falling = True
+                    
+                    prev_nose_y = nose.y
+                    prev_shoulder_y = shoulder_y
                     
                     # Draw skeleton
                     for lm in landmarks:
