@@ -43,6 +43,8 @@ source fall_env/bin/activate
 # 5. Install dependencies
 echo "[5/7] Installing Python packages (this may take 5-10 minutes)..."
 pip install --upgrade pip setuptools wheel
+# Pin protobuf to <4 — mediapipe 0.10.x is incompatible with protobuf 4.x+
+pip install "protobuf>=3.20.3,<4.0.0"
 pip install numpy opencv-python mediapipe
 
 # Optional: Uncomment for PyTorch/TensorFlow (slower on Pi)

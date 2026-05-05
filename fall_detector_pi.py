@@ -79,17 +79,28 @@ try:
     pose_backend = "tasks"
     print("✓ MediaPipe loaded (tasks)")
 except Exception as e:
-    print(f"Tasks failed: {e}, falling back to solutions...")
-    import mediapipe as mp
-    mp_pose = mp.solutions.pose
-    pose = mp_pose.Pose(
-        static_image_mode=False,
-        model_complexity=0,  # Lite version
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5
-    )
-    pose_backend = "solutions"
-    print("✓ MediaPipe loaded (solutions)")
+    print(f"Tasks API failed: {e}")
+    print("Falling back to MediaPipe solutions API...")
+    try:
+        import mediapipe as mp
+        mp_pose = mp.solutions.pose
+        pose = mp_pose.Pose(
+            static_image_mode=False,
+            model_complexity=0,  # Lite version
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5
+        )
+        pose_backend = "solutions"
+        print("✓ MediaPipe loaded (solutions)")
+    except Exception as e2:
+        print(f"\n❌ MediaPipe failed to load: {e2}")
+        print("\n--- FIX ---")
+        print("This is usually a protobuf version conflict.")
+        print("Run the following inside your virtual environment:")
+        print('  pip install "protobuf>=3.20.3,<4.0.0"')
+        print("  pip install --upgrade mediapipe")
+        print("Then restart the script.")
+        sys.exit(1)
 
 # Parameters
 SHOULDER_WIDTH_METERS = 0.4
