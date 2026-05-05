@@ -12,14 +12,16 @@ cap = None
 camera_config = None
 
 # Configurations à essayer (camera_index, backend)
-# Priorité: Camera 2 d'abord
+# Forcer Camera 2 en priorité
 configs = [
     (2, cv2.CAP_ANY),
     (2, cv2.CAP_MSMF),
+    (2, cv2.CAP_DSHOW),
+    (2, 0),
+    (2, 1),
+    (2, 1400),
     (1, cv2.CAP_ANY),
     (0, cv2.CAP_ANY),
-    (1, cv2.CAP_MSMF),
-    (0, cv2.CAP_MSMF),
 ]
 
 for cam_idx, backend in configs:

@@ -27,10 +27,12 @@ else:
     configs = [
         (2, cv2.CAP_ANY),
         (2, cv2.CAP_MSMF),
+        (2, cv2.CAP_DSHOW),
+        (2, 0),
+        (2, 1),
+        (2, 1400),
         (1, cv2.CAP_ANY),
         (0, cv2.CAP_ANY),
-        (1, cv2.CAP_MSMF),
-        (0, cv2.CAP_MSMF),
     ]
 
     for cam_idx, backend in configs:
