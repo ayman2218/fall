@@ -102,8 +102,10 @@ falling_speed_threshold = 0.02  # Détection par vélocité (changement rapide)
 fall_buffer = deque(maxlen=10)
 fall_confirmed = False
 fall_time = 0
+fall_confirmed_time = 0  # Temps quand fall est confirmé
 prev_nose_y = None
 prev_shoulder_y = None
+FALL_DISPLAY_DURATION = 2.0  # Garder "FALL!" affiché 2 secondes minimum
 
 # Tracking
 frame_count = 0
@@ -189,14 +191,18 @@ while True:
             
             # Add to buffer for fall confirmation
             fall_buffer.append(is_falling)
-            fall_confirmed = sum(fall_buffer) >= 3
+            # Besoin de 2+ confirmations seulement (au lieu de 3)
+            is_newly_confirmed = (sum(fall_buffer) >= 2) and not fall_confirmed
+            fall_confirmed = sum(fall_buffer) >= 2
             
-            if fall_confirmed and time.time() - fall_time > 0.5:
+            if is_newly_confirmed:
+                fall_confirmed_time = time.time()
                 print(f"🚨 FALL DETECTED! Distance: {distance_meters:.2f}m")
-                fall_time = time.time()
         else:
             fall_buffer.clear()
-            fall_confirmed = False
+            # Fall reste confirmé pendant FALL_DISPLAY_DURATION
+            if fall_confirmed and time.time() - fall_confirmed_time > FALL_DISPLAY_DURATION:
+                fall_confirmed = False
         
         # Visual feedback
         if person_detected:
@@ -213,7 +219,7 @@ while True:
         # Status text
         if fall_confirmed:
             status_color = (0, 0, 255)  # Red
-            status_text = "FALL!"
+            status_text = "⚠️ FALL!"
             border_color = (0, 0, 255)
         elif is_falling:
             status_color = (0, 165, 255)  # Orange
@@ -221,7 +227,7 @@ while True:
             border_color = (0, 165, 255)
         else:
             status_color = (0, 255, 0)  # Green
-            status_text = "OK"
+            status_text = "✓ OK"
             border_color = (0, 255, 0)
         
         cv2.putText(frame, status_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, status_color, 2)

@@ -92,8 +92,10 @@ falling_speed_threshold = 0.02  # Détection par vélocité (changement rapide)
 fall_buffer = deque(maxlen=10)
 fall_confirmed = False
 fall_time = 0
+fall_confirmed_time = 0  # Temps quand fall est confirmé
 prev_nose_y = None
 prev_shoulder_y = None
+FALL_DISPLAY_DURATION = 2.0  # Garder "FALL!" affiché 2 secondes minimum
 
 # Tracking
 frame_count = 0
@@ -203,18 +205,30 @@ try:
         fall_buffer.append(is_falling)
         
         if person_detected:
-            fall_count = sum(fall_buffer)
-            if fall_count >= 3:
-                fall_confirmed = True
-                fall_time = time.time()
-            elif time.time() - fall_time > 2:
-                fall_confirmed = False
+            # Besoin de 2+ confirmations seulement (au lieu de 3)
+            is_newly_confirmed = (sum(fall_buffer) >= 2) and not fall_confirmed
+            fall_confirmed = sum(fall_buffer) >= 2
+            
+            if is_newly_confirmed:
+                fall_confirmed_time = time.time()
+                print(f"🚨 FALL DETECTED! Distance: {distance_meters:.2f}m")
         else:
-            fall_confirmed = False
+            fall_buffer.clear()
+            # Fall reste confirmé pendant FALL_DISPLAY_DURATION
+            if fall_confirmed and time.time() - fall_confirmed_time > FALL_DISPLAY_DURATION:
+                fall_confirmed = False
         
         # Draw UI
-        status = "FALL!" if fall_confirmed else ("? Fall" if is_falling else "OK")
-        color = (0, 0, 255) if fall_confirmed else ((0, 165, 255) if is_falling else (0, 255, 0))
+        if fall_confirmed:
+            status = "⚠️ FALL!"
+            color = (0, 0, 255)
+        elif is_falling:
+            status = "? Fall"
+            color = (0, 165, 255)
+        else:
+            status = "✓ OK"
+            color = (0, 255, 0)
+        
         cv2.putText(frame, status, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 3)
         
         if person_detected:
